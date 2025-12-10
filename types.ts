@@ -44,7 +44,7 @@ export enum ExpenseCategory {
 export interface User {
   id: string;
   username: string;
-  role: 'admin' | 'venda';
+  role: 'admin' | 'manager' | 'cashier' | 'inventory' | 'hr' | 'venda';
 }
 
 export interface Category {
@@ -88,7 +88,7 @@ export interface SaleItem {
   total_value: number;
   unit_cost: number;
   // Join fields
-  products?: { name: string }; 
+  products?: { name: string };
 }
 
 export interface Sale {
@@ -103,8 +103,9 @@ export interface Sale {
   net_value: number;
   total_cost: number;
   canceled: boolean;
+  employee_id?: string;
   // Join fields
-  sale_items?: SaleItem[]; 
+  sale_items?: SaleItem[];
 }
 
 export interface Expense {
