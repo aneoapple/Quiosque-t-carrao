@@ -321,15 +321,41 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const login = async (username: string, pass: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.from('app_users').select('*').eq('username', username).eq('password', pass).single();
-      if (error || !data) { setIsLoading(false); return false; }
-      const user: User = { id: data.id, username: data.username, role: data.role as 'admin' | 'venda' };
+      const { data, error } = await supabase
+        .from('app_users')
+        .select('id, username, role')
+        .eq('username', username)
+        .eq('password', pass)
+        .maybeSingle(); // não quebra se não achar
+
+      if (error) {
+        console.error('Erro Supabase login:', error);
+        alert('Erro ao acessar o banco: ' + error.message);
+        return false;
+      }
+
+      if (!data) {
+        alert('Usuário ou senha inválidos.');
+        return false;
+      }
+
+      const user: User = {
+        id: data.id,
+        username: data.username,
+        role: data.role as 'admin' | 'venda',
+      };
+
       setCurrentUser(user);
       await loadInitialData(user);
       return true;
-    } catch (e) { setIsLoading(false); return false; }
+    } catch (e: any) {
+      console.error('Erro inesperado no login:', e);
+      alert('Erro inesperado no login. Veja o console do navegador.');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   };
-
   const logout = () => {
     setCurrentUser(null);
     setProducts([]); setSales([]); setExpenses([]); setMovements([]);
