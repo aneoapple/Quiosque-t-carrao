@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useStore } from '../contexts/StoreContext';
 import { PaymentMethod } from '../types';
 import { ChevronLeft, TrendingUp, TrendingDown, DollarSign, Home, Trash2, Search, X, CreditCard, Banknote, QrCode, Tag, Users, Trophy, ShoppingBag, Activity, Calendar } from 'lucide-react';
@@ -18,10 +18,10 @@ const FinanceScreen: React.FC<FinanceScreenProps> = ({ onBack }) => {
 
   const isAdmin = currentUser?.role === 'admin';
 
-  const getEmployeeName = (empId?: string) => {
+  const getEmployeeName = useCallback((empId?: string) => {
     if (!empId) return null;
     return employees.find(e => e.id === empId)?.name || 'Funcionário';
-  };
+  }, [employees]);
 
   // --- DATA FILTERING ---
   const filteredSales = useMemo(() => {
