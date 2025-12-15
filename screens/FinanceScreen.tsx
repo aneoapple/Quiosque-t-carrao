@@ -18,6 +18,11 @@ const FinanceScreen: React.FC<FinanceScreenProps> = ({ onBack }) => {
 
   const isAdmin = currentUser?.role === 'admin';
 
+  const getEmployeeName = (empId?: string) => {
+    if (!empId) return null;
+    return employees.find(e => e.id === empId)?.name || 'Funcionário';
+  };
+
   // --- DATA FILTERING ---
   const filteredSales = useMemo(() => {
     const now = new Date();
@@ -165,10 +170,7 @@ const FinanceScreen: React.FC<FinanceScreenProps> = ({ onBack }) => {
     }
   };
 
-  const getEmployeeName = (empId?: string) => {
-    if (!empId) return null;
-    return employees.find(e => e.id === empId)?.name || 'Funcionário';
-  };
+
 
   const filteredSalesList = sales
     .filter(s => salesSearch ? (s.id.includes(salesSearch) || s.payment_method.toLowerCase().includes(salesSearch.toLowerCase())) : true)
