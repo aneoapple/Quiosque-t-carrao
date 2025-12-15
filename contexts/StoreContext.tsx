@@ -260,7 +260,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     try {
       const { data: e, error: eError } = await supabase.from('expenses').select('*');
       if (eError) throw eError;
-      if (e) setExpenses(e);
+      if (e) {
+        const mappedExpenses = e.map((exp: any) => ({
+          ...exp,
+          value: exp.amount, // Map DB amount to App value
+          canceled: exp.status === 'cancelled', // Map DB status to App canceled
+          fixed_or_variable: 'variable' // Default fallback
+        }));
+        setExpenses(mappedExpenses);
+      }
     } catch (e: any) {
       console.error("Error fetching expenses:", e?.message || JSON.stringify(e));
     }
@@ -660,13 +668,39 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const addExpense = async (expense: Omit<Expense, 'id' | 'created_at'>) => {
     setIsLoading(true);
-    await supabase.from('expenses').insert(expense);
-    await loadInitialData();
+    try {
+      // Map App Expense to DB Schema
+      const payload = {
+        description: expense.description,
+        amount: expense.value, // Map value -> amount
+        category: expense.category,
+        payment_method: expense.payment_method, // Check DB enum constraints if needed
+        status: 'paid', // Default to paid if adding an expense
+        expense_date: expense.expense_date
+      };
+
+      const { error } = await supabase.from('expenses').insert(payload);
+      if (error) throw error;
+      await loadInitialData();
+    } catch (e: any) {
+      console.error("Erro ao adicionar despesa:", e);
+      alert("Erro ao salvar despesa: " + e.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
   const cancelExpense = async (expenseId: string) => {
     setIsLoading(true);
-    await supabase.from('expenses').update({ canceled: true }).eq('id', expenseId);
-    await loadInitialData();
+    try {
+      const { error } = await supabase.from('expenses').update({ status: 'cancelled' }).eq('id', expenseId);
+      if (error) throw error;
+      await loadInitialData();
+    } catch (e: any) {
+      console.error("Erro ao cancelar despesa:", e);
+      alert("Erro ao cancelar despesa: " + e.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
   const addEmployee = async (employee: Omit<Employee, 'id'>) => {
     setIsLoading(true);
